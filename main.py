@@ -1,6 +1,7 @@
 import argparse
 import json
 import re
+import shutil
 import time
 from pathlib import Path
 
@@ -22,6 +23,11 @@ def parse_args():
         help="Conference year, e.g. 2026",
         default=2026,
         required=False,
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing paper directories instead of skipping them.",
     )
     return parser.parse_args()
 
@@ -94,6 +100,12 @@ def main():
 
         folder_name = f"{paper.number:04d}_{paper.id}_{safe_filename(title)}"
         paper_dir = out_dir / folder_name
+        if paper_dir.exists():
+            if not args.overwrite:
+                print(f"[{i}/{len(papers)}] skip existing directory: {folder_name}")
+                continue
+            shutil.rmtree(paper_dir)
+
         paper_dir.mkdir(parents=True, exist_ok=True)
 
         metadata = {
